@@ -10,7 +10,9 @@ import {
 import { DESTINOS_DIP } from '../data/destinosDip';
 import { MUNICIPIOS_AMAZONAS } from '../data/municipiosAmazonas';
 import Modal from '../components/Modal';
+import SignaturePad from '../components/SignaturePad';
 import { newPessoa, newObjeto, newIntegrante } from '../hooks/useBuoStore';
+import { getCurrentEndereco } from '../utils/geolocation';
 
 interface Props {
   buo: BUO;
@@ -99,6 +101,29 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 // ─── Step 1: Identificação ────────────────────────────────────────────────────
 function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) => void }) {
+  const [geoState, setGeoState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [geoError, setGeoError] = useState('');
+
+  const usarLocalizacao = async () => {
+    setGeoState('loading');
+    setGeoError('');
+    try {
+      const endereco = await getCurrentEndereco();
+      const municipioMatch = MUNICIPIOS_AMAZONAS.find(
+        (m) => m.toLowerCase() === endereco.municipio.toLowerCase(),
+      );
+      onChange({
+        localOcorrencia: endereco.local,
+        bairro: endereco.bairro || buo.bairro,
+        ...(municipioMatch ? { municipio: municipioMatch } : {}),
+      });
+      setGeoState('idle');
+    } catch (err) {
+      setGeoState('error');
+      setGeoError(err instanceof Error ? err.message : 'Erro ao obter localização');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -110,10 +135,6 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Input label="Data" required type="date" value={buo.data} onChange={e => onChange({ data: e.target.value })} />
         <Input label="Hora" required type="time" value={buo.hora} onChange={e => onChange({ hora: e.target.value })} />
-        <Select label="Área de atuação" value={buo.zona} onChange={e => onChange({ zona: e.target.value })}>
-          <option value="">Selecione...</option>
-          {ZONAS.map(z => <option key={z} value={z}>{z}</option>)}
-        </Select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -126,12 +147,12 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Select
-          label="Município"
+          label="Cidade / Município"
           required
           value={buo.municipio ?? ''}
           onChange={e => onChange({ municipio: e.target.value })}
         >
-          <option value="">Selecione o município...</option>
+          <option value="">Selecione a cidade / município...</option>
           {MUNICIPIOS_AMAZONAS.map(m => (
             <option key={m} value={m}>{m}</option>
           ))}
@@ -144,7 +165,34 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
         />
       </div>
 
-      <Input label="Local da Ocorrência" required value={buo.localOcorrencia} onChange={e => onChange({ localOcorrencia: e.target.value })} placeholder="Endereço completo" />
+      <Select label="Zona" value={buo.zona} onChange={e => onChange({ zona: e.target.value })}>
+        <option value="">Selecione...</option>
+        {ZONAS.map(z => <option key={z} value={z}>{z}</option>)}
+      </Select>
+
+      <div>
+        <div className="flex items-end justify-between gap-2 mb-1">
+          <Label text="Local da Ocorrência" required />
+          <button
+            type="button"
+            onClick={usarLocalizacao}
+            disabled={geoState === 'loading'}
+            className="shrink-0 px-3 py-1.5 text-xs rounded-lg font-display font-600 border border-[#1A3A5C] text-[#1A3A5C] hover:bg-[#EEF2F8] disabled:opacity-60"
+          >
+            {geoState === 'loading' ? 'Localizando…' : 'Usar minha localização'}
+          </button>
+        </div>
+        <input
+          value={buo.localOcorrencia}
+          onChange={e => onChange({ localOcorrencia: e.target.value })}
+          placeholder="Endereço completo"
+          className="w-full min-h-11 px-3 py-2.5 border border-[#CDD5E0] rounded-lg text-base sm:text-sm focus:outline-none focus:border-[#1A3A5C] focus:ring-1 focus:ring-[#1A3A5C]/20 transition-colors"
+        />
+        <p className="text-xs text-[#9BAABB] mt-1">
+          No celular, permita o acesso à localização para preencher endereço, bairro e município automaticamente.
+        </p>
+        {geoError && <p className="text-xs text-red-600 mt-1">{geoError}</p>}
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
         <Input label="Nº Registro CIOPS" value={buo.registroCiops} onChange={e => onChange({ registroCiops: e.target.value })} />
@@ -740,7 +788,7 @@ function StepObservacoes({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BU
 // ─── Step 8: Recibo Delegacia ─────────────────────────────────────────────────
 function StepRecibo({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) => void }) {
   const r = buo.recibo;
-  const set = (field: string, value: string) => onChange({ recibo: { ...r, [field]: value } });
+  const set = (field: string, value: string) => onChange({ recibo: { ...r, assinaturaUrl: r.assinaturaUrl ?? '', assinaturaImagem: r.assinaturaImagem ?? '', [field]: value } });
 
   return (
     <div className="space-y-4 max-w-xl">
@@ -753,7 +801,56 @@ function StepRecibo({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) =
             <Input label="Data" type="date" value={r.data} onChange={e => set('data', e.target.value)} />
             <Input label="Hora" type="time" value={r.hora} onChange={e => set('hora', e.target.value)} />
           </div>
-          <Input label="Assinatura / Identificação" value={r.assinatura} onChange={e => set('assinatura', e.target.value)} placeholder="Nome ou rubrica..." />
+
+          <div className="space-y-2">
+            <Label text="Assinatura Gov.br" />
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="https://assinador.iti.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-2 text-xs rounded-lg font-display font-600 text-white bg-[#1351B4] hover:bg-[#0C326F]"
+              >
+                Abrir Assinador Gov.br
+              </a>
+              <a
+                href="https://validar.iti.gov.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-2 text-xs rounded-lg font-display font-600 border border-[#1351B4] text-[#1351B4] hover:bg-[#E8F0FE]"
+              >
+                Validar assinatura
+              </a>
+            </div>
+            <Input
+              label="Link da assinatura / verificação"
+              type="url"
+              value={r.assinaturaUrl ?? ''}
+              onChange={e => set('assinaturaUrl', e.target.value)}
+              placeholder="https://… (cole o link do documento ou verificação)"
+            />
+            <p className="text-xs text-[#9BAABB]">
+              Assine o PDF no Assinador Gov.br e cole aqui o link do arquivo ou da verificação.
+            </p>
+          </div>
+
+          <div>
+            <Label text="Rubrica / Assinatura manuscrita" />
+            <SignaturePad
+              value={r.assinaturaImagem}
+              onChange={(dataUrl) => set('assinaturaImagem', dataUrl)}
+              onClear={() => set('assinaturaImagem', '')}
+            />
+          </div>
+
+          <Textarea
+            label="Identificação textual (opcional)"
+            rows={3}
+            value={r.assinatura}
+            onChange={e => set('assinatura', e.target.value)}
+            placeholder="Nome, matrícula ou código de identificação..."
+          />
+
           <Textarea label="Observação" rows={3} value={r.observacao} onChange={e => set('observacao', e.target.value)} />
         </div>
       </div>
@@ -798,7 +895,7 @@ export default function BUOForm({ buo: initialBuo, onSave, onFinalize, onPreview
     if (!buo.data) errors.push('Data da ocorrência');
     if (!buo.hora) errors.push('Hora da ocorrência');
     if (!buo.tipoOcorrencia) errors.push('Tipo de ocorrência');
-    if (!buo.municipio?.trim()) errors.push('Município');
+    if (!buo.municipio?.trim()) errors.push('Cidade / Município');
     if (!buo.localOcorrencia) errors.push('Local da ocorrência');
     if (!buo.relato.trim()) errors.push('Relato da ocorrência');
     if (!buo.policial.nome) errors.push('Nome do policial responsável');

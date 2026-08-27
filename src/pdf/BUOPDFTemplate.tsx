@@ -163,12 +163,12 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
               <Field label="Nº REGISTRO CIOPS" value={buo.registroCiops} />
             </div>
             <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
-              <Field label="MUNICÍPIO" value={buo.municipio} />
+              <Field label="CIDADE / MUNICÍPIO" value={buo.municipio} />
               <Field label="BAIRRO" value={buo.bairro} />
             </div>
             <div className="buo-meta buo-meta--local" style={{ marginTop: 4 }}>
               <Field label="LOCAL DA OCORRÊNCIA" value={buo.localOcorrencia} wide />
-              <Field label="ÁREA DE ATUAÇÃO" value={buo.zona} />
+              <Field label="ZONA" value={buo.zona} />
             </div>
           </div>
         </section>
@@ -264,7 +264,29 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
             </div>
             <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
               <Field label="FUNÇÃO" value={reciboFuncao} />
-              <Field label="ASSINATURA" value={buo.recibo.assinatura} />
+            </div>
+            <div className="buo-assinatura" style={{ marginTop: 6 }}>
+              <span className="buo-field__label">ASSINATURA / IDENTIFICAÇÃO (GOV.BR)</span>
+              <div className="buo-assinatura__box">
+                {buo.recibo.assinaturaImagem?.startsWith("data:image") && (
+                  <img
+                    src={buo.recibo.assinaturaImagem}
+                    alt="Assinatura"
+                    className="buo-assinatura__img"
+                    crossOrigin="anonymous"
+                  />
+                )}
+                {buo.recibo.assinaturaUrl?.trim() && (
+                  <div className="buo-assinatura__url">{buo.recibo.assinaturaUrl}</div>
+                )}
+                {buo.recibo.assinatura?.trim() && (
+                  <div className="buo-assinatura__text">{buo.recibo.assinatura}</div>
+                )}
+                {!buo.recibo.assinaturaImagem &&
+                  !buo.recibo.assinaturaUrl?.trim() &&
+                  !buo.recibo.assinatura?.trim() &&
+                  "—"}
+              </div>
             </div>
             <div style={{ marginTop: 4 }}>
               <Field label="OBSERVAÇÕES" value={reciboObs} wide />

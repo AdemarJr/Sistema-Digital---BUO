@@ -112,9 +112,9 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
           <Field label="VTR/MT" value={buo.vtrMt} />
           <Field label="Data" value={formatDate(buo.data)} />
           <Field label="Hora" value={buo.hora} />
-          <Field label="Área de atuação" value={buo.zona} />
-          <Field label="Município" value={buo.municipio} />
+          <Field label="Cidade / Município" value={buo.municipio} />
           <Field label="Bairro" value={buo.bairro} />
+          <Field label="Zona" value={buo.zona} />
           <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
           <Field label="Local" value={buo.localOcorrencia} />
           <Field label="Nº CIOPS" value={buo.registroCiops} />
@@ -292,7 +292,34 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
           <Field label="Função" value={buo.recibo.funcao} />
           <Field label="Data" value={buo.recibo.data ? formatDate(buo.recibo.data) : undefined} />
           <Field label="Hora" value={buo.recibo.hora} />
-          <Field label="Assinatura" value={buo.recibo.assinatura} />
+        </div>
+        <div className="mt-4 space-y-3">
+          <div>
+            <p className="text-xs text-[#9BAABB] font-display font-600 uppercase tracking-wide mb-1">
+              Assinatura / Identificação (Gov.br)
+            </p>
+            <div className="min-h-[100px] rounded-lg border border-[#CDD5E0] bg-[#F8FAFC] p-3 space-y-2">
+              {buo.recibo.assinaturaImagem?.startsWith('data:image') && (
+                <img src={buo.recibo.assinaturaImagem} alt="Assinatura" className="max-h-24 object-contain bg-white rounded border border-[#EEF2F8]" />
+              )}
+              {buo.recibo.assinaturaUrl?.trim() && (
+                <a
+                  href={buo.recibo.assinaturaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-xs text-[#1351B4] break-all underline"
+                >
+                  {buo.recibo.assinaturaUrl}
+                </a>
+              )}
+              {buo.recibo.assinatura?.trim() && (
+                <p className="text-sm text-[#0D1B2A] whitespace-pre-wrap">{buo.recibo.assinatura}</p>
+              )}
+              {!buo.recibo.assinaturaImagem && !buo.recibo.assinaturaUrl?.trim() && !buo.recibo.assinatura?.trim() && (
+                <span className="text-[#9BAABB]">—</span>
+              )}
+            </div>
+          </div>
         </div>
         {buo.recibo.observacao && (
           <div className="mt-3 pt-3 border-t border-[#EEF2F8]">

@@ -84,13 +84,9 @@ export const TIPOS_OCORRENCIA = [
 ];
 
 export const ZONAS = [
-  'NORTE',
-  'SUL',
-  'LESTE',
-  'OESTE',
-  'CENTRO',
-  'NORDESTE',
-  'NOROESTE',
-  'SUDESTE',
-  'SUDOESTE',
+  'Zona Norte',
+  'Zona Sul',
+  'Zona Leste',
+  'Zona Oeste',
+  'Zona Centro-Oeste',
 ];

@@ -133,6 +133,47 @@
   padding-bottom: 3px;
 }
 
+.buo-assinatura {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.buo-assinatura__box {
+  min-height: 110px;
+  padding: 8px 10px;
+  background: #f7f8fa;
+  border: 1px solid #c8ced6;
+  border-radius: 2px;
+  font-size: 8pt;
+  font-weight: 600;
+  color: #000;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.buo-assinatura__img {
+  display: block;
+  max-width: 100%;
+  max-height: 90px;
+  object-fit: contain;
+  margin-bottom: 6px;
+  background: #fff;
+}
+
+.buo-assinatura__url {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 7pt;
+  color: #1351b4;
+  word-break: break-all;
+  margin-bottom: 4px;
+}
+
+.buo-assinatura__text {
+  font-size: 8.5pt;
+}
+
 .buo-meta {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

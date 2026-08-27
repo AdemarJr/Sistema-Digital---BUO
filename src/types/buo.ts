@@ -54,6 +54,10 @@ export interface ReciboDelegacia {
   nome: string;
   funcao: string;
   assinatura: string;
+  /** Link de verificação / documento assinado (Gov.br, VALIDAR, etc.) */
+  assinaturaUrl: string;
+  /** Assinatura manuscrita em data URL (canvas) */
+  assinaturaImagem: string;
   data: string;
   hora: string;
   observacao: string;
