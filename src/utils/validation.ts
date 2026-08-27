@@ -8,9 +8,8 @@ export function validateBUO(buo: BUO): string[] {
   if (!buo.municipio?.trim()) errors.push("Cidade / Município");
   if (!buo.localOcorrencia?.trim()) errors.push("Local da ocorrência");
   if (!buo.relato?.trim()) errors.push("Relato da ocorrência");
-  if (!buo.policial?.nome?.trim()) errors.push("Nome do policial responsável");
-  if (!buo.policial?.identificacaoFuncional?.trim()) {
-    errors.push("Nº identificação funcional");
+  if (!buo.recibo?.identificacaoFuncional?.trim() && !buo.policial?.identificacaoFuncional?.trim()) {
+    errors.push("Nº ID. funcional (Recibo — Delegacia)");
   }
   return errors;
 }

@@ -29,7 +29,6 @@ const STEPS = [
   'Relato',
   'Códigos',
   'Guarnição',
-  'Identificação Funcional',
   'Observações',
   'Recibo — Delegacia',
 ];
@@ -744,28 +743,7 @@ function StepGuarnicao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>
   );
 }
 
-// ─── Step 7: Policial Responsável ─────────────────────────────────────────────
-function StepPolicial({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) => void }) {
-  const p = buo.policial;
-  const set = (field: string, value: string) => onChange({ policial: { ...p, [field]: value } });
-
-  return (
-    <div className="space-y-4 max-w-xl">
-      <div className="p-4 bg-[#F3F5F9] rounded border border-[#CDD5E0]">
-        <p className="text-xs font-display font-600 text-[#6B7A90] uppercase tracking-wide mb-3">Identificação Funcional</p>
-        <div className="space-y-3">
-          <Input label="Nome Completo" required value={p.nome} onChange={e => set('nome', e.target.value)} />
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Nº ID. FUNCIONAL" required value={p.identificacaoFuncional} onChange={e => set('identificacaoFuncional', e.target.value)} />
-            <Input label="Função" value={p.funcao} onChange={e => set('funcao', e.target.value)} placeholder="Ex.: Soldado PM, Cabo PM..." />
-          </div>
-          <Textarea label="Observações do policial" rows={3} value={p.observacoes} onChange={e => set('observacoes', e.target.value)} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// ─── Step 7: Observações ──────────────────────────────────────────────────────
 function StepObservacoes({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) => void }) {
   return (
     <div className="space-y-4 max-w-2xl">
@@ -788,7 +766,16 @@ function StepObservacoes({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BU
 // ─── Step 8: Recibo Delegacia ─────────────────────────────────────────────────
 function StepRecibo({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) => void }) {
   const r = buo.recibo;
-  const set = (field: string, value: string) => onChange({ recibo: { ...r, assinaturaUrl: r.assinaturaUrl ?? '', assinaturaImagem: r.assinaturaImagem ?? '', [field]: value } });
+  const set = (field: string, value: string) =>
+    onChange({
+      recibo: {
+        ...r,
+        identificacaoFuncional: r.identificacaoFuncional ?? buo.policial?.identificacaoFuncional ?? '',
+        assinaturaUrl: r.assinaturaUrl ?? '',
+        assinaturaImagem: r.assinaturaImagem ?? '',
+        [field]: value,
+      },
+    });
 
   return (
     <div className="space-y-4 max-w-xl">
@@ -796,7 +783,15 @@ function StepRecibo({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) =
         <p className="text-xs font-display font-600 text-[#6B7A90] uppercase tracking-wide mb-3">Recibo — Delegacia de Polícia</p>
         <div className="space-y-3">
           <Input label="Nome (responsável pelo recebimento)" value={r.nome} onChange={e => set('nome', e.target.value)} />
-          <Input label="Função" value={r.funcao} onChange={e => set('funcao', e.target.value)} placeholder="Ex.: Delegado, Escrivão..." />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Nº ID. FUNCIONAL"
+              required
+              value={r.identificacaoFuncional ?? buo.policial?.identificacaoFuncional ?? ''}
+              onChange={e => set('identificacaoFuncional', e.target.value)}
+            />
+            <Input label="Função" value={r.funcao} onChange={e => set('funcao', e.target.value)} placeholder="Ex.: Delegado, Escrivão..." />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Data" type="date" value={r.data} onChange={e => set('data', e.target.value)} />
             <Input label="Hora" type="time" value={r.hora} onChange={e => set('hora', e.target.value)} />
@@ -898,8 +893,9 @@ export default function BUOForm({ buo: initialBuo, onSave, onFinalize, onPreview
     if (!buo.municipio?.trim()) errors.push('Cidade / Município');
     if (!buo.localOcorrencia) errors.push('Local da ocorrência');
     if (!buo.relato.trim()) errors.push('Relato da ocorrência');
-    if (!buo.policial.nome) errors.push('Nome do policial responsável');
-    if (!buo.policial.identificacaoFuncional) errors.push('Identificação funcional do policial');
+    if (!buo.recibo.identificacaoFuncional?.trim() && !buo.policial.identificacaoFuncional?.trim()) {
+      errors.push('Nº ID. funcional (Recibo — Delegacia)');
+    }
     return errors;
   };
 
@@ -922,9 +918,8 @@ export default function BUOForm({ buo: initialBuo, onSave, onFinalize, onPreview
     <StepRelato key="4" {...stepProps} />,
     <StepCodigos key="5" {...stepProps} />,
     <StepGuarnicao key="6" {...stepProps} />,
-    <StepPolicial key="7" {...stepProps} />,
-    <StepObservacoes key="8" {...stepProps} />,
-    <StepRecibo key="9" {...stepProps} />,
+    <StepObservacoes key="7" {...stepProps} />,
+    <StepRecibo key="8" {...stepProps} />,
   ];
 
   const statusColors: Record<string, string> = {

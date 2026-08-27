@@ -146,7 +146,7 @@ export function createBUO(): BUO {
     codigosOcorrencia: [],
     guarnicao: [],
     policial: { nome: "", identificacaoFuncional: "", funcao: "", observacoes: "" },
-    recibo: { nome: "", funcao: "", assinatura: "", assinaturaUrl: "", assinaturaImagem: "", data: "", hora: "", observacao: "" },
+    recibo: { nome: "", identificacaoFuncional: "", funcao: "", assinatura: "", assinaturaUrl: "", assinaturaImagem: "", data: "", hora: "", observacao: "" },
     observacoes: "",
     status: "RASCUNHO",
     createdAt: now,

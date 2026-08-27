@@ -52,6 +52,7 @@ export interface PolicialResponsavel {
 
 export interface ReciboDelegacia {
   nome: string;
+  identificacaoFuncional: string;
   funcao: string;
   assinatura: string;
   /** Link de verificação / documento assinado (Gov.br, VALIDAR, etc.) */

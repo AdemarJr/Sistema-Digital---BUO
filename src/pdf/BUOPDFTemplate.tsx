@@ -92,7 +92,7 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
 
   const reciboNome = buo.recibo.nome || buo.policial.nome;
   const reciboFuncao = buo.recibo.funcao || buo.policial.funcao;
-  const reciboId = buo.policial.identificacaoFuncional;
+  const reciboId = buo.recibo.identificacaoFuncional || buo.policial.identificacaoFuncional;
   const reciboObs = buo.recibo.observacao || buo.observacoes || buo.policial.observacoes;
 
   const naturezas = [

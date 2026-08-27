@@ -261,34 +261,23 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
         )}
       </div>
 
-      {/* 7. Policial */}
-      <div className="bg-white rounded border border-[#CDD5E0] p-5">
-        <SectionTitle>7. Policial Responsável</SectionTitle>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <Field label="Nome" value={buo.policial.nome} />
-          <Field label="Identificação Funcional" value={buo.policial.identificacaoFuncional} />
-          <Field label="Função" value={buo.policial.funcao} />
-        </div>
-        {buo.policial.observacoes && (
-          <div className="mt-3 pt-3 border-t border-[#EEF2F8]">
-            <Field label="Observações" value={buo.policial.observacoes} />
-          </div>
-        )}
-      </div>
-
-      {/* 8. Observações */}
+      {/* 7. Observações */}
       {buo.observacoes && (
         <div className="bg-white rounded border border-[#CDD5E0] p-5">
-          <SectionTitle>8. Observações Gerais</SectionTitle>
+          <SectionTitle>7. Observações Gerais</SectionTitle>
           <p className="text-sm text-[#0D1B2A] whitespace-pre-wrap">{buo.observacoes}</p>
         </div>
       )}
 
-      {/* 9. Recibo */}
+      {/* 8. Recibo */}
       <div className="bg-white rounded border border-[#CDD5E0] p-5">
-        <SectionTitle>9. Recibo — Delegacia de Polícia</SectionTitle>
+        <SectionTitle>8. Recibo — Delegacia de Polícia</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <Field label="Nome" value={buo.recibo.nome} />
+          <Field
+            label="Nº ID. Funcional"
+            value={buo.recibo.identificacaoFuncional || buo.policial.identificacaoFuncional}
+          />
           <Field label="Função" value={buo.recibo.funcao} />
           <Field label="Data" value={buo.recibo.data ? formatDate(buo.recibo.data) : undefined} />
           <Field label="Hora" value={buo.recibo.hora} />
