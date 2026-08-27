@@ -67,6 +67,8 @@ export interface BUO {
   tipoOcorrencia: string;
   codigoOcorrencia: string;
   localOcorrencia: string;
+  municipio: string;
+  bairro: string;
   zona: string;
   pelotao: string;
   equipe: string;

@@ -126,6 +126,8 @@ export function createBUO(): BUO {
     tipoOcorrencia: "",
     codigoOcorrencia: "",
     localOcorrencia: "",
+    municipio: "",
+    bairro: "",
     zona: "",
     pelotao: "",
     equipe: "",

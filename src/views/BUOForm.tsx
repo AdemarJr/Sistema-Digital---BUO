@@ -8,9 +8,9 @@ import {
   isTipoEntorpecente,
 } from '../data/entorpecentes';
 import { DESTINOS_DIP } from '../data/destinosDip';
+import { MUNICIPIOS_AMAZONAS } from '../data/municipiosAmazonas';
 import Modal from '../components/Modal';
 import { newPessoa, newObjeto, newIntegrante } from '../hooks/useBuoStore';
-import { splitDateParts } from '../utils/date';
 
 interface Props {
   buo: BUO;
@@ -99,14 +99,6 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 // ─── Step 1: Identificação ────────────────────────────────────────────────────
 function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) => void }) {
-  const parts = splitDateParts(buo.data);
-
-  const setDateFromParts = (dia: string, mes: string, ano: string) => {
-    if (dia.length === 2 && mes.length === 2 && ano.length === 4) {
-      onChange({ data: `${ano}-${mes}-${dia}` });
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -124,36 +116,32 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
         </Select>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 max-w-md">
-        <Input
-          label="Dia"
-          value={parts.dia}
-          maxLength={2}
-          onChange={e => setDateFromParts(e.target.value.replace(/\D/g, '').slice(0, 2), parts.mes, parts.ano)}
-          placeholder="DD"
-        />
-        <Input
-          label="Mês"
-          value={parts.mes}
-          maxLength={2}
-          onChange={e => setDateFromParts(parts.dia, e.target.value.replace(/\D/g, '').slice(0, 2), parts.ano)}
-          placeholder="MM"
-        />
-        <Input
-          label="Ano"
-          value={parts.ano}
-          maxLength={4}
-          onChange={e => setDateFromParts(parts.dia, parts.mes, e.target.value.replace(/\D/g, '').slice(0, 4))}
-          placeholder="AAAA"
-        />
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Select label="Tipo de Ocorrência" required value={buo.tipoOcorrencia} onChange={e => onChange({ tipoOcorrencia: e.target.value })}>
           <option value="">Selecione...</option>
           {TIPOS_OCORRENCIA.map(t => <option key={t}>{t}</option>)}
         </Select>
         <Input label="Código da ocorrência" value={buo.codigoOcorrencia} onChange={e => onChange({ codigoOcorrencia: e.target.value })} placeholder="Ex.: 016" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Select
+          label="Município"
+          required
+          value={buo.municipio ?? ''}
+          onChange={e => onChange({ municipio: e.target.value })}
+        >
+          <option value="">Selecione o município...</option>
+          {MUNICIPIOS_AMAZONAS.map(m => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </Select>
+        <Input
+          label="Bairro"
+          value={buo.bairro ?? ''}
+          onChange={e => onChange({ bairro: e.target.value })}
+          placeholder="Digite o bairro"
+        />
       </div>
 
       <Input label="Local da Ocorrência" required value={buo.localOcorrencia} onChange={e => onChange({ localOcorrencia: e.target.value })} placeholder="Endereço completo" />
@@ -810,6 +798,7 @@ export default function BUOForm({ buo: initialBuo, onSave, onFinalize, onPreview
     if (!buo.data) errors.push('Data da ocorrência');
     if (!buo.hora) errors.push('Hora da ocorrência');
     if (!buo.tipoOcorrencia) errors.push('Tipo de ocorrência');
+    if (!buo.municipio?.trim()) errors.push('Município');
     if (!buo.localOcorrencia) errors.push('Local da ocorrência');
     if (!buo.relato.trim()) errors.push('Relato da ocorrência');
     if (!buo.policial.nome) errors.push('Nome do policial responsável');

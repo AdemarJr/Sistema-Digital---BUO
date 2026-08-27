@@ -162,6 +162,10 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
               />
               <Field label="Nº REGISTRO CIOPS" value={buo.registroCiops} />
             </div>
+            <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
+              <Field label="MUNICÍPIO" value={buo.municipio} />
+              <Field label="BAIRRO" value={buo.bairro} />
+            </div>
             <div className="buo-meta buo-meta--local" style={{ marginTop: 4 }}>
               <Field label="LOCAL DA OCORRÊNCIA" value={buo.localOcorrencia} wide />
               <Field label="ÁREA DE ATUAÇÃO" value={buo.zona} />

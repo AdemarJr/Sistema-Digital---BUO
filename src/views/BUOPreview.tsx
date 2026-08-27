@@ -113,6 +113,8 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
           <Field label="Data" value={formatDate(buo.data)} />
           <Field label="Hora" value={buo.hora} />
           <Field label="Área de atuação" value={buo.zona} />
+          <Field label="Município" value={buo.municipio} />
+          <Field label="Bairro" value={buo.bairro} />
           <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
           <Field label="Local" value={buo.localOcorrencia} />
           <Field label="Nº CIOPS" value={buo.registroCiops} />
