@@ -107,14 +107,14 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
         <div className="bg-white rounded-xl border border-[#CDD5E0] p-4 sm:p-5">
           <SectionTitle>1. Identificação da Ocorrência</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          <Field label="Data" value={formatDate(buo.data)} />
-          <Field label="Hora" value={buo.hora} />
-          <Field label="Zona" value={buo.zona} />
-          <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
-          <Field label="Local" value={buo.localOcorrencia} />
           <Field label="Pelotão" value={buo.pelotao} />
           <Field label="Equipe" value={buo.equipe} />
           <Field label="VTR/MT" value={buo.vtrMt} />
+          <Field label="Data" value={formatDate(buo.data)} />
+          <Field label="Hora" value={buo.hora} />
+          <Field label="Área de atuação" value={buo.zona} />
+          <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
+          <Field label="Local" value={buo.localOcorrencia} />
           <Field label="Nº CIOPS" value={buo.registroCiops} />
           <Field label="Situação" value={buo.situacao} />
         </div>
@@ -191,7 +191,9 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
                     <Field label="Munições" value={o.municoes} />
                   </>}
                   {o.categoria === 'ENTORPECENTE' && <>
+                    <Field label="Tipo" value={o.tipo} />
                     <Field label="Substância" value={o.substancia} />
+                    <Field label="Tipo de Apreensão" value={o.tipoApreensao} />
                     <Field label="Quantidade" value={`${o.quantidade} ${o.unidade}`} />
                     <Field label="Embalagem" value={o.embalagem} />
                   </>}

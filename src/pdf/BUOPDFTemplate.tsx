@@ -1,4 +1,4 @@
-import { BUO, Pessoa, Objeto, IntegranteGuarnicao } from "../types/buo";
+import { BUO, Objeto, IntegranteGuarnicao } from "../types/buo";
 import { CODIGOS_OCORRENCIA } from "../data/codes";
 import { splitDateParts, formatDateBR } from "../utils/date";
 
@@ -55,24 +55,11 @@ function armamentoDesc(o: Objeto): string {
 }
 
 function entorpDesc(o: Objeto): string {
-  return [o.tipo, o.substancia, o.descricao].filter(Boolean).join(" / ");
+  return [o.tipo, o.substancia, o.tipoApreensao, o.descricao].filter(Boolean).join(" / ");
 }
 
 function veiculoDesc(o: Objeto): string {
   return [o.tipo, o.marca, o.modelo, o.placa, o.cor, o.descricao].filter(Boolean).join(" / ");
-}
-
-function emptyPessoa(): Pessoa {
-  return {
-    id: `empty-${Math.random()}`,
-    nome: "",
-    idade: "",
-    rg: "",
-    endereco: "",
-    situacao: "",
-    destino: "",
-    observacoes: "",
-  };
 }
 
 function emptyIntegrante(): IntegranteGuarnicao {
@@ -84,7 +71,7 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
   const pmamSrc = logos?.pmam ?? `${import.meta.env.BASE_URL}logos/pmam-ft.png`;
   const { dia, mes, ano } = splitDateParts(buo.data);
 
-  const pessoas = padArray(buo.pessoas, Math.max(buo.pessoas.length, 3), emptyPessoa).slice(0, 5);
+  const pessoas = buo.pessoas;
   const guarnicao = padArray(
     buo.guarnicao.map((g) => ({ ...g, ci: g.ci ?? "" })),
     Math.max(buo.guarnicao.length, 4),
@@ -135,17 +122,17 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
           </div>
         </header>
 
+        <div className="buo-meta buo-meta--3">
+          <Field label="PELOTÃO" value={buo.pelotao} />
+          <Field label="EQUIPE" value={buo.equipe} />
+          <Field label="VTR/MT" value={buo.vtrMt} />
+        </div>
+
         <div className="buo-meta buo-meta--4">
           <Field label="DATA" value={formatDateBR(buo.data)} />
           <Field label="HORA" value={buo.hora} />
           <Field label="TIPO" value={buo.tipoOcorrencia} />
           <Field label="SITUAÇÃO" value={buo.situacao} />
-        </div>
-
-        <div className="buo-meta buo-meta--3">
-          <Field label="PELOTÃO" value={buo.pelotao} />
-          <Field label="EQUIPE" value={buo.equipe} />
-          <Field label="VTR/MT" value={buo.vtrMt} />
         </div>
 
         <div className="buo-datetime">
@@ -178,7 +165,7 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
             </div>
             <div className="buo-meta buo-meta--local" style={{ marginTop: 4 }}>
               <Field label="LOCAL DA OCORRÊNCIA" value={buo.localOcorrencia} wide />
-              <Field label="ZONA" value={buo.zona} />
+              <Field label="ÁREA DE ATUAÇÃO" value={buo.zona} />
             </div>
           </div>
         </section>
@@ -186,28 +173,29 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
         <section className="buo-box">
           <div className="buo-box__title">PESSOAS ENVOLVIDAS</div>
           <div className="buo-box__body buo-pessoas">
-            {pessoas.map((p, i) => (
-              <div key={p.id || i} className="buo-pessoa">
-                <div className="buo-pessoa__n">{i + 1}</div>
-                <div className="buo-pessoa__grid">
-                  <Field label="NOME" value={p.nome} wide />
-                  <Field label="IDADE" value={p.idade} />
-                  <Field label="RG" value={p.rg} />
-                  <Field label="ENDEREÇO" value={p.endereco} wide />
-                  <Field label="DESTINO" value={p.destino} wide />
-                  <div className="buo-field buo-field--wide">
-                    <span className="buo-field__label">SITUAÇÃO</span>
-                    <div className="buo-checks buo-checks--inline">
-                      <Check checked={p.situacao === "VITIMA"} label="VÍTIMA" />
-                      <Check checked={p.situacao === "AUTOR"} label="AUTOR" />
-                      <Check checked={p.situacao === "TESTEMUNHA"} label="TESTEMUNHA" />
+            {pessoas.length === 0 ? (
+              <p className="buo-empty">Nenhuma pessoa cadastrada.</p>
+            ) : (
+              pessoas.map((p, i) => (
+                <div key={p.id || i} className="buo-pessoa">
+                  <div className="buo-pessoa__n">{i + 1}</div>
+                  <div className="buo-pessoa__grid">
+                    <Field label="NOME" value={p.nome} wide />
+                    <Field label="IDADE" value={p.idade} />
+                    <Field label="RG" value={p.rg} />
+                    <Field label="ENDEREÇO" value={p.endereco} wide />
+                    <Field label="DESTINO" value={p.destino} wide />
+                    <div className="buo-field buo-field--wide">
+                      <span className="buo-field__label">SITUAÇÃO</span>
+                      <div className="buo-checks buo-checks--inline">
+                        <Check checked={p.situacao === "VITIMA"} label="VÍTIMA" />
+                        <Check checked={p.situacao === "AUTOR"} label="AUTOR" />
+                        <Check checked={p.situacao === "TESTEMUNHA"} label="TESTEMUNHA" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {buo.pessoas.length === 0 && (
-              <p className="buo-empty">Nenhuma pessoa cadastrada.</p>
+              ))
             )}
           </div>
         </section>

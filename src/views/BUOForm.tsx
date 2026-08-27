@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { BUO, Pessoa, Objeto, IntegranteGuarnicao, CategoriaObjeto } from '../types/buo';
 import { CODIGOS_OCORRENCIA, TIPOS_OCORRENCIA, ZONAS } from '../data/codes';
+import {
+  TIPOS_ENTORPECENTE,
+  SUBSTANCIAS_POR_TIPO,
+  TIPOS_APREENSAO_ENTORPECENTE,
+  isTipoEntorpecente,
+} from '../data/entorpecentes';
 import Modal from '../components/Modal';
 import { newPessoa, newObjeto, newIntegrante } from '../hooks/useBuoStore';
 import { splitDateParts } from '../utils/date';
@@ -103,11 +109,17 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <Input label="Pelotão" value={buo.pelotao} onChange={e => onChange({ pelotao: e.target.value })} />
+        <Input label="Equipe" value={buo.equipe} onChange={e => onChange({ equipe: e.target.value })} />
+        <Input label="VTR/MT" value={buo.vtrMt} onChange={e => onChange({ vtrMt: e.target.value })} />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Input label="Data" required type="date" value={buo.data} onChange={e => onChange({ data: e.target.value })} />
         <Input label="Hora" required type="time" value={buo.hora} onChange={e => onChange({ hora: e.target.value })} />
-        <Select label="Zona" value={buo.zona} onChange={e => onChange({ zona: e.target.value })}>
+        <Select label="Área de atuação" value={buo.zona} onChange={e => onChange({ zona: e.target.value })}>
           <option value="">Selecione...</option>
-          {ZONAS.map(z => <option key={z}>{z}</option>)}
+          {ZONAS.map(z => <option key={z} value={z}>{z}</option>)}
         </Select>
       </div>
 
@@ -145,10 +157,7 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
 
       <Input label="Local da Ocorrência" required value={buo.localOcorrencia} onChange={e => onChange({ localOcorrencia: e.target.value })} placeholder="Endereço completo" />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Input label="Pelotão" value={buo.pelotao} onChange={e => onChange({ pelotao: e.target.value })} />
-        <Input label="Equipe" value={buo.equipe} onChange={e => onChange({ equipe: e.target.value })} />
-        <Input label="VTR/MT" value={buo.vtrMt} onChange={e => onChange({ vtrMt: e.target.value })} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
         <Input label="Nº Registro CIOPS" value={buo.registroCiops} onChange={e => onChange({ registroCiops: e.target.value })} />
       </div>
 
@@ -407,17 +416,81 @@ function StepObjetos({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
         }
       >
         <div className="space-y-4">
-          <Select label="Categoria" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value as CategoriaObjeto }))}>
+          <Select
+            label="Categoria"
+            value={form.categoria}
+            onChange={e => {
+              const categoria = e.target.value as CategoriaObjeto;
+              setForm(f => ({
+                ...f,
+                categoria,
+                ...(categoria === 'ENTORPECENTE' || f.categoria === 'ENTORPECENTE'
+                  ? { tipo: '', substancia: '', tipoApreensao: '' }
+                  : {}),
+              }));
+            }}
+          >
             <option value="GERAL">Geral</option>
             <option value="ARMAMENTO">Armamento</option>
             <option value="ENTORPECENTE">Entorpecente</option>
             <option value="VEICULO">Veículo</option>
           </Select>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Tipo" value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} />
-            <Input label="Tipo de Apreensão" value={form.tipoApreensao} onChange={e => setForm(f => ({ ...f, tipoApreensao: e.target.value }))} />
-          </div>
+          {form.categoria === 'ENTORPECENTE' ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Select
+                  label="Tipo"
+                  value={form.tipo}
+                  onChange={e => {
+                    const tipo = e.target.value;
+                    setForm(f => ({ ...f, tipo, substancia: '' }));
+                  }}
+                >
+                  <option value="">Selecione o tipo</option>
+                  {TIPOS_ENTORPECENTE.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </Select>
+                <Select
+                  label="Tipo de Apreensão"
+                  value={form.tipoApreensao}
+                  onChange={e => setForm(f => ({ ...f, tipoApreensao: e.target.value }))}
+                >
+                  <option value="">Selecione</option>
+                  {TIPOS_APREENSAO_ENTORPECENTE.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </Select>
+              </div>
+              <Select
+                label="Substância — SUPOSTAMENTE"
+                value={form.substancia}
+                onChange={e => setForm(f => ({ ...f, substancia: e.target.value }))}
+                disabled={!isTipoEntorpecente(form.tipo)}
+              >
+                <option value="">
+                  {isTipoEntorpecente(form.tipo)
+                    ? 'Selecione a substância'
+                    : 'Selecione o tipo primeiro'}
+                </option>
+                {isTipoEntorpecente(form.tipo) &&
+                  SUBSTANCIAS_POR_TIPO[form.tipo].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+              </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Embalagem" value={form.embalagem} onChange={e => setForm(f => ({ ...f, embalagem: e.target.value }))} />
+                <Input label="Quantidade" value={form.quantidade} onChange={e => setForm(f => ({ ...f, quantidade: e.target.value }))} />
+                <Input label="Unidade de Medida" value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} placeholder="g, kg, unid..." />
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Tipo" value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} />
+              <Input label="Tipo de Apreensão" value={form.tipoApreensao} onChange={e => setForm(f => ({ ...f, tipoApreensao: e.target.value }))} />
+            </div>
+          )}
 
           {form.categoria === 'GERAL' && (
             <>
@@ -439,17 +512,6 @@ function StepObjetos({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
                 <Input label="Qtd. de Munições" type="number" value={form.municoes} onChange={e => setForm(f => ({ ...f, municoes: e.target.value }))} />
                 <Input label="Número de Série" value={form.numeroSerie} onChange={e => setForm(f => ({ ...f, numeroSerie: e.target.value }))} />
                 <Input label="Quantidade" type="number" value={form.quantidade} onChange={e => setForm(f => ({ ...f, quantidade: e.target.value }))} />
-              </div>
-            </>
-          )}
-
-          {form.categoria === 'ENTORPECENTE' && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Substância" value={form.substancia} onChange={e => setForm(f => ({ ...f, substancia: e.target.value }))} />
-                <Input label="Embalagem" value={form.embalagem} onChange={e => setForm(f => ({ ...f, embalagem: e.target.value }))} />
-                <Input label="Quantidade" value={form.quantidade} onChange={e => setForm(f => ({ ...f, quantidade: e.target.value }))} />
-                <Input label="Unidade de Medida" value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} placeholder="g, kg, unid..." />
               </div>
             </>
           )}

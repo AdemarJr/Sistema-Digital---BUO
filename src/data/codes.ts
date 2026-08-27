@@ -83,4 +83,14 @@ export const TIPOS_OCORRENCIA = [
   'OUTROS',
 ];
 
-export const ZONAS = ['URBANA', 'RURAL', 'PERIURBANA'];
+export const ZONAS = [
+  'NORTE',
+  'SUL',
+  'LESTE',
+  'OESTE',
+  'CENTRO',
+  'NORDESTE',
+  'NOROESTE',
+  'SUDESTE',
+  'SUDOESTE',
+];
