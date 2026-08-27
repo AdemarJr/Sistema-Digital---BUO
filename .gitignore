@@ -37,3 +37,7 @@ coverage/
 # Misc
 *.pem
 .vercel/
+
+# Prefer npm lockfile on Vercel
+pnpm-lock.yaml
+yarn.lock
