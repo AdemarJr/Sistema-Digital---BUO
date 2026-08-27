@@ -1,0 +1,396 @@
+/* Relatório BUO preenchido — legível, sem linhas cortando texto */
+
+.buo-pdf {
+  width: 210mm;
+  background: #fff;
+  color: #111;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+.buo-pdf *,
+.buo-pdf *::before,
+.buo-pdf *::after {
+  box-sizing: border-box;
+}
+
+.buo-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 10mm 12mm 12mm;
+  background: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Header */
+.buo-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 70px;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+}
+
+.buo-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  display: block;
+}
+
+.buo-logo--pmam {
+  width: 54px;
+  height: 54px;
+}
+
+.buo-header__center {
+  text-align: center;
+}
+
+.buo-header__pmam {
+  font-weight: 700;
+  font-size: 14pt;
+  letter-spacing: 2px;
+}
+
+.buo-header__cmd {
+  font-weight: 700;
+  font-size: 8.5pt;
+  margin-top: 1px;
+}
+
+.buo-header__unit {
+  font-size: 8pt;
+  margin-top: 1px;
+}
+
+.buo-header__title {
+  font-weight: 700;
+  font-size: 11.5pt;
+  margin-top: 5px;
+}
+
+.buo-header__right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.buo-visto {
+  border: 1.5px solid #000;
+  width: 100%;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6.5pt;
+  font-weight: 700;
+}
+
+/* Fields — label ABOVE value (sem linha cortando texto) */
+.buo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 5px 7px 8px;
+  background: #f7f8fa;
+  border: 1px solid #c8ced6;
+  border-radius: 2px;
+}
+
+.buo-field--wide {
+  grid-column: 1 / -1;
+}
+
+.buo-field__label {
+  font-size: 6.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #444;
+  line-height: 1.2;
+}
+
+.buo-field__value {
+  display: block;
+  font-size: 9.5pt;
+  font-weight: 600;
+  color: #000;
+  word-break: break-word;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  min-height: 1.45em;
+  padding-top: 2px;
+  padding-bottom: 3px;
+}
+
+.buo-meta {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.buo-meta--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.buo-meta--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.buo-meta--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.buo-meta--local {
+  grid-template-columns: 1fr 100px;
+}
+
+.buo-datetime {
+  display: flex;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.buo-digit-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 52px;
+  padding: 5px 8px 7px;
+  border: 1px solid #000;
+  background: #fff;
+}
+
+.buo-digit-group__label {
+  font-size: 6.5pt;
+  font-weight: 700;
+}
+
+.buo-digit-group__value {
+  font-size: 12pt;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* Boxes */
+.buo-box {
+  border: 1.5px solid #000;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.buo-box--recibo {
+  margin-top: auto;
+}
+
+.buo-box__title {
+  background: #0a1b32;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  font-size: 8.5pt;
+  letter-spacing: 0.6px;
+  padding: 5px 8px;
+}
+
+.buo-box__body {
+  padding: 8px 10px 10px;
+}
+
+.buo-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.buo-checks--inline {
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.buo-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 7.5pt;
+}
+
+.buo-check.is-on .buo-check__label {
+  font-weight: 700;
+}
+
+.buo-check__box {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.buo-check.is-on .buo-check__box {
+  background: #0a1b32;
+  color: #fff;
+  border-color: #0a1b32;
+}
+
+.buo-naturezas-selected {
+  margin: 6px 0 0;
+  font-size: 8pt;
+  font-weight: 600;
+}
+
+.buo-empty {
+  margin: 0;
+  font-size: 8pt;
+  font-style: italic;
+  color: #666;
+}
+
+/* Pessoas */
+.buo-pessoas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.buo-pessoa {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 6px;
+  border: 1px solid #c8ced6;
+  padding: 5px;
+  background: #fff;
+}
+
+.buo-pessoa__n {
+  font-weight: 700;
+  font-size: 11pt;
+  text-align: center;
+  padding-top: 12px;
+  background: #eef2f8;
+  border-radius: 2px;
+}
+
+.buo-pessoa__grid {
+  display: grid;
+  grid-template-columns: 1fr 70px 110px;
+  gap: 5px;
+}
+
+.buo-pessoa__grid {
+  display: grid;
+  grid-template-columns: 1fr 70px 110px;
+  gap: 5px;
+}
+
+/* Tables */
+.buo-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 7.5pt;
+}
+
+.buo-table th,
+.buo-table td {
+  border: 1px solid #000;
+  padding: 6px 6px 8px;
+  vertical-align: middle;
+  text-align: left;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.buo-table th {
+  background: #e8ecf1;
+  font-weight: 700;
+  text-align: center;
+  font-size: 7pt;
+  vertical-align: middle;
+  padding: 5px 6px;
+}
+
+.buo-table td {
+  font-weight: 600;
+  min-height: 22px;
+}
+
+.buo-qtd {
+  width: 32px;
+  text-align: center !important;
+}
+
+.buo-table--guarnicao td,
+.buo-table--guarnicao th {
+  font-size: 8.5pt;
+  padding: 7px 8px 9px;
+}
+
+/* Relato — SEM linhas de pauta */
+.buo-relato-box {
+  flex: 1.2;
+  min-height: 120mm;
+}
+
+.buo-relato {
+  padding: 14px 14px 18px;
+  font-size: 10.5pt;
+  line-height: 1.65;
+  font-weight: 500;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #000;
+  background: #fff;
+  min-height: 100mm;
+}
+
+.buo-codigo-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1.5px solid #000;
+  padding: 6px 10px 8px;
+  background: #f3f5f9;
+  font-size: 8.5pt;
+}
+
+.buo-codigo-chip strong {
+  font-size: 9pt;
+}
+
+.buo-footer {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #999;
+  text-align: center;
+  font-size: 7pt;
+  color: #444;
+}
+
+@media print {
+  .buo-page {
+    page-break-after: always;
+    break-after: page;
+  }
+}
