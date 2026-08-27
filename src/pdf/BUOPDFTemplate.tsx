@@ -128,11 +128,10 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
           <Field label="VTR/MT" value={buo.vtrMt} />
         </div>
 
-        <div className="buo-meta buo-meta--4">
+        <div className="buo-meta buo-meta--3">
           <Field label="DATA" value={formatDateBR(buo.data)} />
           <Field label="HORA" value={buo.hora} />
           <Field label="TIPO" value={buo.tipoOcorrencia} />
-          <Field label="SITUAÇÃO" value={buo.situacao} />
         </div>
 
         <div className="buo-datetime">

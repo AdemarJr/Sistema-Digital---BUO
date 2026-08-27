@@ -7,6 +7,7 @@ import {
   TIPOS_APREENSAO_ENTORPECENTE,
   isTipoEntorpecente,
 } from '../data/entorpecentes';
+import { DESTINOS_DIP } from '../data/destinosDip';
 import Modal from '../components/Modal';
 import { newPessoa, newObjeto, newIntegrante } from '../hooks/useBuoStore';
 import { splitDateParts } from '../utils/date';
@@ -162,10 +163,6 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
       </div>
 
       <div>
-        <Input label="Situação" value={buo.situacao} onChange={e => onChange({ situacao: e.target.value })} placeholder="Ex.: Em investigação, Encerrada..." />
-      </div>
-
-      <div>
         <Label text="Natureza do Registro" />
         <div className="flex flex-wrap gap-2 mt-2">
           <Toggle label="TCO" checked={buo.tco} onChange={v => onChange({ tco: v })} />
@@ -289,7 +286,12 @@ function StepPessoas({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
             <option value="AUTOR">AUTOR</option>
             <option value="TESTEMUNHA">TESTEMUNHA</option>
           </Select>
-          <Input label="Destino" value={form.destino} onChange={e => setForm(f => ({ ...f, destino: e.target.value }))} placeholder="Ex.: Delegacia de Polícia, Hospital..." />
+          <Select label="Destino" value={form.destino} onChange={e => setForm(f => ({ ...f, destino: e.target.value }))}>
+            <option value="">Selecione o DIP...</option>
+            {DESTINOS_DIP.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </Select>
           <Textarea label="Observações" rows={3} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} />
         </div>
       </Modal>

@@ -116,7 +116,6 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
           <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
           <Field label="Local" value={buo.localOcorrencia} />
           <Field label="Nº CIOPS" value={buo.registroCiops} />
-          <Field label="Situação" value={buo.situacao} />
         </div>
         {naturezas && (
           <div className="mt-4 pt-4 border-t border-[#EEF2F8]">
