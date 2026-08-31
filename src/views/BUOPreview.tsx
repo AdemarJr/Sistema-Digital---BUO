@@ -116,6 +116,11 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
           <Field label="Bairro" value={buo.bairro} />
           <Field label="Zona" value={buo.zona} />
           <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
+          <Field
+            label="Código da ocorrência"
+            value={buo.codigoOcorrencia || buo.codigosOcorrencia.join(', ')}
+          />
+          <Field label="Nº BUO" value={buo.numeroBuo} />
           <Field label="Local" value={buo.localOcorrencia} />
           <Field label="Nº CIOPS" value={buo.registroCiops} />
         </div>

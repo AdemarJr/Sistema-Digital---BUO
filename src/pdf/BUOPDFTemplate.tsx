@@ -154,7 +154,21 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
     buo.outros && "OUTROS",
   ].filter(Boolean) as string[];
 
-  const codigoOcorrencia = buo.codigoOcorrencia || buo.codigosOcorrencia.join(", ");
+  const codigoOcorrencia =
+    buo.codigoOcorrencia?.trim() ||
+    selectedCodes
+      .map((c) => (c ? `${c.codigo}` : ""))
+      .filter(Boolean)
+      .join(", ") ||
+    buo.codigosOcorrencia.join(", ");
+
+  const codigoOcorrenciaDetalhe =
+    selectedCodes.length > 0
+      ? selectedCodes
+          .map((c) => (c ? `${c.codigo} — ${c.descricao}` : ""))
+          .filter(Boolean)
+          .join(" · ")
+      : codigoOcorrencia;
 
   return (
     <div className="buo-pdf" id={`buo-pdf-${buo.id}`}>
@@ -167,6 +181,9 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
             <div className="buo-header__cmd">COMANDO DE POLICIAMENTO METROPOLITANO</div>
             <div className="buo-header__unit">1º BPM – FORÇA TÁTICA (99.0)</div>
             <div className="buo-header__title">BOLETIM ÚNICO DE OCORRÊNCIA — BUO</div>
+            {hasText(buo.numeroBuo) && (
+              <div className="buo-header__numero">Nº BUO: {buo.numeroBuo}</div>
+            )}
           </div>
           <div className="buo-header__right">
             <img className="buo-logo buo-logo--pmam" src={pmamSrc} alt="" crossOrigin="anonymous" />
@@ -212,8 +229,11 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
               </>
             )}
             <div className="buo-meta buo-meta--2" style={{ marginTop: naturezas.length ? 6 : 0 }}>
-              <Field label="CÓDIGO DA OCORRÊNCIA" value={codigoOcorrencia} />
+              <Field label="CÓDIGO DA OCORRÊNCIA" value={codigoOcorrenciaDetalhe || codigoOcorrencia} />
               <Field label="Nº REGISTRO CIOPS" value={buo.registroCiops} />
+            </div>
+            <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
+              <Field label="Nº BUO" value={buo.numeroBuo} />
             </div>
             <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
               <Field label="CIDADE / MUNICÍPIO" value={buo.municipio} />

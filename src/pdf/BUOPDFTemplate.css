@@ -77,6 +77,13 @@
   margin-top: 5px;
 }
 
+.buo-header__numero {
+  font-weight: 700;
+  font-size: 10pt;
+  margin-top: 4px;
+  letter-spacing: 0.4px;
+}
+
 .buo-header__right {
   display: flex;
   flex-direction: column;

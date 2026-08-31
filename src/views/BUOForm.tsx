@@ -141,8 +141,18 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
           <option value="">Selecione...</option>
           {TIPOS_OCORRENCIA.map(t => <option key={t}>{t}</option>)}
         </Select>
-        <Input label="Código da ocorrência" value={buo.codigoOcorrencia} onChange={e => onChange({ codigoOcorrencia: e.target.value })} placeholder="Ex.: 016" />
+        <Input
+          label="Código da ocorrência"
+          value={buo.codigoOcorrencia || buo.codigosOcorrencia.join(', ')}
+          onChange={e => onChange({ codigoOcorrencia: e.target.value })}
+          placeholder="Selecione na etapa Códigos ou digite (ex.: 016)"
+        />
       </div>
+      {buo.numeroBuo && (
+        <p className="text-xs text-[#6B7A90] -mt-3">
+          Nº BUO: <span className="font-mono font-600 text-[#0E2240]">{buo.numeroBuo}</span>
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Select
@@ -608,7 +618,10 @@ function StepCodigos({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
     const selected = buo.codigosOcorrencia.includes(codigo)
       ? buo.codigosOcorrencia.filter(c => c !== codigo)
       : [...buo.codigosOcorrencia, codigo];
-    onChange({ codigosOcorrencia: selected });
+    onChange({
+      codigosOcorrencia: selected,
+      codigoOcorrencia: selected.join(", "),
+    });
   };
 
   return (
@@ -619,7 +632,7 @@ function StepCodigos({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
         </p>
         {buo.codigosOcorrencia.length > 0 && (
           <button
-            onClick={() => onChange({ codigosOcorrencia: [] })}
+            onClick={() => onChange({ codigosOcorrencia: [], codigoOcorrencia: '' })}
             className="text-xs text-red-600 hover:text-red-700 font-display font-600"
           >
             Limpar seleção
