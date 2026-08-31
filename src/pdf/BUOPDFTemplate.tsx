@@ -1,10 +1,14 @@
-import { BUO, Objeto, IntegranteGuarnicao } from "../types/buo";
+import { BUO, Objeto } from "../types/buo";
 import { CODIGOS_OCORRENCIA } from "../data/codes";
 import { splitDateParts, formatDateBR } from "../utils/date";
 
 interface Props {
   buo: BUO;
   logos?: { brasao: string; pmam: string };
+}
+
+function hasText(value?: string | null): boolean {
+  return Boolean(value?.trim());
 }
 
 function Check({ checked, label }: { checked: boolean; label: string }) {
@@ -16,6 +20,7 @@ function Check({ checked, label }: { checked: boolean; label: string }) {
   );
 }
 
+/** Só renderiza o campo quando houver valor preenchido. */
 function Field({
   label,
   value,
@@ -25,45 +30,86 @@ function Field({
   value?: string | null;
   wide?: boolean;
 }) {
+  if (!hasText(value)) return null;
   return (
     <div className={`buo-field${wide ? " buo-field--wide" : ""}`}>
       <span className="buo-field__label">{label}</span>
-      <span className="buo-field__value">{value?.trim() ? value : "—"}</span>
+      <span className="buo-field__value">{value!.trim()}</span>
     </div>
   );
 }
 
 function DigitGroup({ label, value }: { label: string; value: string }) {
+  if (!hasText(value)) return null;
   return (
     <div className="buo-digit-group">
       <span className="buo-digit-group__label">{label}</span>
-      <span className="buo-digit-group__value">{value || "—"}</span>
+      <span className="buo-digit-group__value">{value}</span>
     </div>
   );
 }
 
-function padArray<T>(arr: T[], size: number, factory: () => T): T[] {
-  const out = [...arr];
-  while (out.length < size) out.push(factory());
-  return out.slice(0, size);
+function joinParts(parts: Array<string | false | null | undefined>): string {
+  return parts.filter(Boolean).join(" / ");
 }
 
 function armamentoDesc(o: Objeto): string {
-  return [o.tipo, o.calibre, o.municoes && `mun: ${o.municoes}`, o.marca, o.modelo]
-    .filter(Boolean)
-    .join(" / ");
+  return joinParts([
+    o.tipo,
+    o.marca,
+    o.modelo,
+    o.calibre && `cal: ${o.calibre}`,
+    o.municoes && `mun: ${o.municoes}`,
+    o.numeroSerie && `série: ${o.numeroSerie}`,
+    o.tipoApreensao,
+    o.situacao && `sit: ${o.situacao}`,
+    o.observacoes,
+  ]);
 }
 
 function entorpDesc(o: Objeto): string {
-  return [o.tipo, o.substancia, o.tipoApreensao, o.descricao].filter(Boolean).join(" / ");
+  return joinParts([
+    o.tipo,
+    o.substancia,
+    o.tipoApreensao,
+    o.embalagem && `emb: ${o.embalagem}`,
+    o.descricao,
+    o.situacao && `sit: ${o.situacao}`,
+    o.observacoes,
+  ]);
 }
 
 function veiculoDesc(o: Objeto): string {
-  return [o.tipo, o.marca, o.modelo, o.placa, o.cor, o.descricao].filter(Boolean).join(" / ");
+  return joinParts([
+    o.tipo,
+    o.marca,
+    o.modelo,
+    o.placa,
+    o.cor,
+    o.chassi && `chassi: ${o.chassi}`,
+    o.tipoApreensao,
+    o.descricao,
+    o.situacao && `sit: ${o.situacao}`,
+    o.observacoes,
+  ]);
 }
 
-function emptyIntegrante(): IntegranteGuarnicao {
-  return { id: `empty-${Math.random()}`, nome: "", ci: "", funcao: "" };
+function geralDesc(o: Objeto): string {
+  return joinParts([
+    o.tipo,
+    o.descricao,
+    o.numeroIdentificacao && `ID: ${o.numeroIdentificacao}`,
+    o.unidade && `unid: ${o.unidade}`,
+    o.tipoApreensao,
+    o.situacao && `sit: ${o.situacao}`,
+    o.observacoes,
+  ]);
+}
+
+function qtyLabel(o?: Objeto): string {
+  if (!o) return "";
+  if (!hasText(o.quantidade) && !hasText(o.unidade)) return "";
+  return [o.quantidade, o.unidade].filter(Boolean).join(" ");
 }
 
 export default function BUOPDFTemplate({ buo, logos }: Props) {
@@ -72,11 +118,9 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
   const { dia, mes, ano } = splitDateParts(buo.data);
 
   const pessoas = buo.pessoas;
-  const guarnicao = padArray(
-    buo.guarnicao.map((g) => ({ ...g, ci: g.ci ?? "" })),
-    Math.max(buo.guarnicao.length, 4),
-    emptyIntegrante,
-  ).slice(0, 8);
+  const guarnicaoMembers = buo.guarnicao.filter(
+    (g) => hasText(g.nome) || hasText(g.ci) || hasText(g.funcao),
+  );
 
   const armasRaw = buo.objetos.filter((o) => o.categoria === "ARMAMENTO");
   const drogasRaw = buo.objetos.filter((o) => o.categoria === "ENTORPECENTE");
@@ -84,7 +128,10 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
     (o) => o.categoria === "VEICULO" || o.categoria === "GERAL",
   );
 
-  const rowCount = Math.max(armasRaw.length, drogasRaw.length, veiculosRaw.length, 3);
+  const rowCount =
+    buo.objetos.length === 0
+      ? 0
+      : Math.max(armasRaw.length, drogasRaw.length, veiculosRaw.length);
 
   const selectedCodes = buo.codigosOcorrencia
     .map((cod) => CODIGOS_OCORRENCIA.find((c) => c.codigo === cod))
@@ -93,7 +140,10 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
   const reciboNome = buo.recibo.nome || buo.policial.nome;
   const reciboFuncao = buo.recibo.funcao || buo.policial.funcao;
   const reciboId = buo.recibo.identificacaoFuncional || buo.policial.identificacaoFuncional;
-  const reciboObs = buo.recibo.observacao || buo.observacoes || buo.policial.observacoes;
+  const hasAssinatura =
+    Boolean(buo.recibo.assinaturaImagem?.startsWith("data:image")) ||
+    hasText(buo.recibo.assinaturaUrl) ||
+    hasText(buo.recibo.assinatura);
 
   const naturezas = [
     buo.tco && "TCO",
@@ -103,6 +153,8 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
     buo.auxilioPrestado && "AUX. PRESTADO",
     buo.outros && "OUTROS",
   ].filter(Boolean) as string[];
+
+  const codigoOcorrencia = buo.codigoOcorrencia || buo.codigosOcorrencia.join(", ");
 
   return (
     <div className="buo-pdf" id={`buo-pdf-${buo.id}`}>
@@ -134,32 +186,33 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
           <Field label="TIPO" value={buo.tipoOcorrencia} />
         </div>
 
-        <div className="buo-datetime">
-          <DigitGroup label="DIA" value={dia} />
-          <DigitGroup label="MÊS" value={mes} />
-          <DigitGroup label="ANO" value={ano} />
-          <DigitGroup label="HORA" value={buo.hora} />
-        </div>
+        {(hasText(dia) || hasText(mes) || hasText(ano) || hasText(buo.hora)) && (
+          <div className="buo-datetime">
+            <DigitGroup label="DIA" value={dia} />
+            <DigitGroup label="MÊS" value={mes} />
+            <DigitGroup label="ANO" value={ano} />
+            <DigitGroup label="HORA" value={buo.hora} />
+          </div>
+        )}
 
         <section className="buo-box">
           <div className="buo-box__title">NATUREZA / CLASSIFICAÇÃO</div>
           <div className="buo-box__body">
-            <div className="buo-checks">
-              <Check checked={buo.tco} label="TCO" />
-              <Check checked={buo.flagrante} label="FLAGRANTE" />
-              <Check checked={buo.apresentacaoPessoas} label="APRES. DE PESSOAS" />
-              <Check checked={buo.veiculoRecuperado} label="VEÍCULO RECUPERADO" />
-              <Check checked={buo.auxilioPrestado} label="AUX. PRESTADO" />
-              <Check checked={buo.outros} label="OUTROS" />
-            </div>
             {naturezas.length > 0 && (
-              <p className="buo-naturezas-selected">Marcados: {naturezas.join(" · ")}</p>
+              <>
+                <div className="buo-checks">
+                  <Check checked={buo.tco} label="TCO" />
+                  <Check checked={buo.flagrante} label="FLAGRANTE" />
+                  <Check checked={buo.apresentacaoPessoas} label="APRES. DE PESSOAS" />
+                  <Check checked={buo.veiculoRecuperado} label="VEÍCULO RECUPERADO" />
+                  <Check checked={buo.auxilioPrestado} label="AUX. PRESTADO" />
+                  <Check checked={buo.outros} label="OUTROS" />
+                </div>
+                <p className="buo-naturezas-selected">Marcados: {naturezas.join(" · ")}</p>
+              </>
             )}
-            <div className="buo-meta buo-meta--2" style={{ marginTop: 6 }}>
-              <Field
-                label="CÓDIGO DA OCORRÊNCIA"
-                value={buo.codigoOcorrencia || buo.codigosOcorrencia.join(", ")}
-              />
+            <div className="buo-meta buo-meta--2" style={{ marginTop: naturezas.length ? 6 : 0 }}>
+              <Field label="CÓDIGO DA OCORRÊNCIA" value={codigoOcorrencia} />
               <Field label="Nº REGISTRO CIOPS" value={buo.registroCiops} />
             </div>
             <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
@@ -188,14 +241,17 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
                     <Field label="RG" value={p.rg} />
                     <Field label="ENDEREÇO" value={p.endereco} wide />
                     <Field label="DESTINO" value={p.destino} wide />
-                    <div className="buo-field buo-field--wide">
-                      <span className="buo-field__label">SITUAÇÃO</span>
-                      <div className="buo-checks buo-checks--inline">
-                        <Check checked={p.situacao === "VITIMA"} label="VÍTIMA" />
-                        <Check checked={p.situacao === "AUTOR"} label="AUTOR" />
-                        <Check checked={p.situacao === "TESTEMUNHA"} label="TESTEMUNHA" />
+                    {p.situacao && (
+                      <div className="buo-field buo-field--wide">
+                        <span className="buo-field__label">SITUAÇÃO</span>
+                        <div className="buo-checks buo-checks--inline">
+                          <Check checked={p.situacao === "VITIMA"} label="VÍTIMA" />
+                          <Check checked={p.situacao === "AUTOR"} label="AUTOR" />
+                          <Check checked={p.situacao === "TESTEMUNHA"} label="TESTEMUNHA" />
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    <Field label="OBSERVAÇÕES" value={p.observacoes} wide />
                   </div>
                 </div>
               ))
@@ -212,17 +268,29 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
               <table className="buo-table">
                 <thead>
                   <tr>
-                    <th colSpan={2}>ARMAMENTOS</th>
-                    <th colSpan={2}>ENTORPECENTES</th>
-                    <th colSpan={2}>VEÍCULOS/OUTROS</th>
+                    {armasRaw.length > 0 && <th colSpan={2}>ARMAMENTOS</th>}
+                    {drogasRaw.length > 0 && <th colSpan={2}>ENTORPECENTES</th>}
+                    {veiculosRaw.length > 0 && <th colSpan={2}>VEÍCULOS/OUTROS</th>}
                   </tr>
                   <tr>
-                    <th className="buo-qtd">QTD</th>
-                    <th>TIPO / CALIBRE / MUNIÇÕES</th>
-                    <th className="buo-qtd">QTD</th>
-                    <th>TIPO</th>
-                    <th className="buo-qtd">QTD</th>
-                    <th>TIPO</th>
+                    {armasRaw.length > 0 && (
+                      <>
+                        <th className="buo-qtd">QTD</th>
+                        <th>DESCRIÇÃO</th>
+                      </>
+                    )}
+                    {drogasRaw.length > 0 && (
+                      <>
+                        <th className="buo-qtd">QTD</th>
+                        <th>DESCRIÇÃO</th>
+                      </>
+                    )}
+                    {veiculosRaw.length > 0 && (
+                      <>
+                        <th className="buo-qtd">QTD</th>
+                        <th>DESCRIÇÃO</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -232,20 +300,30 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
                     const v = veiculosRaw[i];
                     return (
                       <tr key={i}>
-                        <td className="buo-qtd">{a?.quantidade ?? ""}</td>
-                        <td>{a ? armamentoDesc(a) : ""}</td>
-                        <td className="buo-qtd">
-                          {d ? `${d.quantidade}${d.unidade ? ` ${d.unidade}` : ""}` : ""}
-                        </td>
-                        <td>{d ? entorpDesc(d) : ""}</td>
-                        <td className="buo-qtd">{v?.quantidade ?? ""}</td>
-                        <td>
-                          {v
-                            ? v.categoria === "VEICULO"
-                              ? veiculoDesc(v)
-                              : [v.tipo, v.descricao].filter(Boolean).join(" — ")
-                            : ""}
-                        </td>
+                        {armasRaw.length > 0 && (
+                          <>
+                            <td className="buo-qtd">{qtyLabel(a)}</td>
+                            <td>{a ? armamentoDesc(a) : ""}</td>
+                          </>
+                        )}
+                        {drogasRaw.length > 0 && (
+                          <>
+                            <td className="buo-qtd">{qtyLabel(d)}</td>
+                            <td>{d ? entorpDesc(d) : ""}</td>
+                          </>
+                        )}
+                        {veiculosRaw.length > 0 && (
+                          <>
+                            <td className="buo-qtd">{qtyLabel(v)}</td>
+                            <td>
+                              {v
+                                ? v.categoria === "VEICULO"
+                                  ? veiculoDesc(v)
+                                  : geralDesc(v)
+                                : ""}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })}
@@ -262,34 +340,34 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
               <Field label="NOME" value={reciboNome} />
               <Field label="Nº ID. FUNCIONAL" value={reciboId} />
             </div>
-            <div className="buo-meta buo-meta--2" style={{ marginTop: 4 }}>
+            <div className="buo-meta buo-meta--3" style={{ marginTop: 4 }}>
               <Field label="FUNÇÃO" value={reciboFuncao} />
+              <Field label="DATA" value={buo.recibo.data ? formatDateBR(buo.recibo.data) : ""} />
+              <Field label="HORA" value={buo.recibo.hora} />
             </div>
-            <div className="buo-assinatura" style={{ marginTop: 6 }}>
-              <span className="buo-field__label">ASSINATURA / IDENTIFICAÇÃO (GOV.BR)</span>
-              <div className="buo-assinatura__box">
-                {buo.recibo.assinaturaImagem?.startsWith("data:image") && (
-                  <img
-                    src={buo.recibo.assinaturaImagem}
-                    alt="Assinatura"
-                    className="buo-assinatura__img"
-                    crossOrigin="anonymous"
-                  />
-                )}
-                {buo.recibo.assinaturaUrl?.trim() && (
-                  <div className="buo-assinatura__url">{buo.recibo.assinaturaUrl}</div>
-                )}
-                {buo.recibo.assinatura?.trim() && (
-                  <div className="buo-assinatura__text">{buo.recibo.assinatura}</div>
-                )}
-                {!buo.recibo.assinaturaImagem &&
-                  !buo.recibo.assinaturaUrl?.trim() &&
-                  !buo.recibo.assinatura?.trim() &&
-                  "—"}
+            {hasAssinatura && (
+              <div className="buo-assinatura" style={{ marginTop: 6 }}>
+                <span className="buo-field__label">ASSINATURA / IDENTIFICAÇÃO (GOV.BR)</span>
+                <div className="buo-assinatura__box">
+                  {buo.recibo.assinaturaImagem?.startsWith("data:image") && (
+                    <img
+                      src={buo.recibo.assinaturaImagem}
+                      alt="Assinatura"
+                      className="buo-assinatura__img"
+                      crossOrigin="anonymous"
+                    />
+                  )}
+                  {hasText(buo.recibo.assinaturaUrl) && (
+                    <div className="buo-assinatura__url">{buo.recibo.assinaturaUrl}</div>
+                  )}
+                  {hasText(buo.recibo.assinatura) && (
+                    <div className="buo-assinatura__text">{buo.recibo.assinatura}</div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ marginTop: 4 }}>
-              <Field label="OBSERVAÇÕES" value={reciboObs} wide />
+              <Field label="OBSERVAÇÕES DO RECIBO" value={buo.recibo.observacao} wide />
             </div>
           </div>
         </section>
@@ -297,23 +375,17 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
 
       {/* ═══════════════ PÁGINA 2 ═══════════════ */}
       <div className="buo-page">
-        <section className="buo-box buo-relato-box">
-          <div className="buo-box__title">RELATO DA OCORRÊNCIA</div>
-          <div className="buo-relato">
-            {buo.relato?.trim() ? (
-              buo.relato
-            ) : (
-              <span className="buo-empty">Relato não preenchido.</span>
-            )}
-          </div>
-        </section>
+        {hasText(buo.relato) && (
+          <section className="buo-box buo-relato-box">
+            <div className="buo-box__title">RELATO DA OCORRÊNCIA</div>
+            <div className="buo-relato">{buo.relato}</div>
+          </section>
+        )}
 
-        <section className="buo-box">
-          <div className="buo-box__title">CÓDIGOS DAS OCORRÊNCIAS</div>
-          <div className="buo-box__body">
-            {selectedCodes.length === 0 ? (
-              <p className="buo-empty">Nenhum código selecionado.</p>
-            ) : (
+        {selectedCodes.length > 0 && (
+          <section className="buo-box">
+            <div className="buo-box__title">CÓDIGOS DAS OCORRÊNCIAS</div>
+            <div className="buo-box__body">
               <div className="buo-codigos-selecionados">
                 {selectedCodes.map(
                   (c) =>
@@ -325,44 +397,52 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
                     ),
                 )}
               </div>
-            )}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
-        <section className="buo-box">
-          <div className="buo-box__title">GUARNIÇÃO</div>
-          <div className="buo-box__body">
-            <table className="buo-table buo-table--guarnicao">
-              <thead>
-                <tr>
-                  <th style={{ width: 36 }}>Nº</th>
-                  <th>NOME</th>
-                  <th style={{ width: 110 }}>C.I.</th>
-                  <th style={{ width: 140 }}>FUNÇÃO</th>
-                </tr>
-              </thead>
-              <tbody>
-                {guarnicao.map((g, i) => (
-                  <tr key={g.id || i}>
-                    <td>{i + 1}</td>
-                    <td>{g.nome || "—"}</td>
-                    <td>{g.ci || "—"}</td>
-                    <td>{g.funcao || "—"}</td>
+        {guarnicaoMembers.length > 0 && (
+          <section className="buo-box">
+            <div className="buo-box__title">GUARNIÇÃO</div>
+            <div className="buo-box__body">
+              <table className="buo-table buo-table--guarnicao">
+                <thead>
+                  <tr>
+                    <th style={{ width: 36 }}>Nº</th>
+                    <th>NOME</th>
+                    <th style={{ width: 110 }}>C.I.</th>
+                    <th style={{ width: 140 }}>FUNÇÃO</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {buo.guarnicao.length === 0 && (
-              <p className="buo-empty" style={{ marginTop: 6 }}>
-                Guarnição não preenchida.
+                </thead>
+                <tbody>
+                  {guarnicaoMembers.map((g, i) => (
+                    <tr key={g.id || i}>
+                      <td>{i + 1}</td>
+                      <td>{g.nome || ""}</td>
+                      <td>{g.ci || ""}</td>
+                      <td>{g.funcao || ""}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {hasText(buo.observacoes) && (
+          <section className="buo-box">
+            <div className="buo-box__title">OBSERVAÇÕES GERAIS</div>
+            <div className="buo-box__body">
+              <p className="buo-relato" style={{ minHeight: "auto", whiteSpace: "pre-wrap" }}>
+                {buo.observacoes}
               </p>
-            )}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
         <footer className="buo-footer">
-          {formatDateBR(buo.data)} {buo.hora} · PMAM — 1º BPM Força Tática (99.0) · Documento gerado
-          digitalmente
+          {[formatDateBR(buo.data), buo.hora].filter(Boolean).join(" ")} · PMAM — 1º BPM Força Tática
+          (99.0) · Documento gerado digitalmente
         </footer>
       </div>
     </div>
