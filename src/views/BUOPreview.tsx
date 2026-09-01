@@ -1,5 +1,10 @@
 import { BUO, StatusBUO } from '../types/buo';
-import { CODIGOS_OCORRENCIA } from '../data/codes';
+import {
+  collectCodigosFromBuo,
+  formatCodigosDetalhe,
+  formatCodigosNumeros,
+  resolveCodigosCatalog,
+} from '../utils/codigosOcorrencia';
 
 interface Props {
   buo: BUO;
@@ -36,9 +41,8 @@ function Field({ label, value }: { label: string; value?: string | boolean | nul
 }
 
 export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onBack }: Props) {
-  const codigoSelecionados = buo.codigosOcorrencia.map(cod =>
-    CODIGOS_OCORRENCIA.find(c => c.codigo === cod)
-  ).filter(Boolean);
+  const codigosNumeros = formatCodigosNumeros(buo);
+  const codigoSelecionados = resolveCodigosCatalog(collectCodigosFromBuo(buo));
 
   const naturezas = [
     buo.tco && 'TCO',
@@ -118,7 +122,7 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
           <Field label="Tipo de Ocorrência" value={buo.tipoOcorrencia} />
           <Field
             label="Código da ocorrência"
-            value={buo.codigoOcorrencia || buo.codigosOcorrencia.join(', ')}
+            value={formatCodigosDetalhe(buo) || codigosNumeros}
           />
           <Field label="Nº BUO" value={buo.numeroBuo} />
           <Field label="Local" value={buo.localOcorrencia} />
@@ -233,15 +237,21 @@ export default function BUOPreview({ buo, onEdit, onFinalize, onGeneratePdf, onB
       </div>
 
       {/* 5. Códigos */}
-      {buo.codigosOcorrencia.length > 0 && (
+      {codigosNumeros && (
         <div className="bg-white rounded border border-[#CDD5E0] p-5">
           <SectionTitle>5. Códigos de Ocorrência</SectionTitle>
           <div className="flex flex-wrap gap-2">
-            {codigoSelecionados.map(c => c && (
-              <span key={c.id} className="inline-flex px-2 py-1 rounded bg-[#0E2240] text-white text-xs font-display font-600">
-                {c.codigo} — {c.descricao}
+            {codigoSelecionados.length > 0 ? (
+              codigoSelecionados.map(c => (
+                <span key={c.id} className="inline-flex px-2 py-1 rounded bg-[#0E2240] text-white text-xs font-display font-600">
+                  {c.codigo} — {c.descricao}
+                </span>
+              ))
+            ) : (
+              <span className="inline-flex px-2 py-1 rounded bg-[#0E2240] text-white text-xs font-display font-600">
+                {codigosNumeros}
               </span>
-            ))}
+            )}
           </div>
         </div>
       )}

@@ -13,6 +13,11 @@ import Modal from '../components/Modal';
 import SignaturePad from '../components/SignaturePad';
 import { newPessoa, newObjeto, newIntegrante } from '../hooks/useBuoStore';
 import { getCurrentEndereco } from '../utils/geolocation';
+import {
+  formatCodigosNumeros,
+  syncCodigosFromSelection,
+  syncCodigosFromText,
+} from '../utils/codigosOcorrencia';
 
 interface Props {
   buo: BUO;
@@ -143,8 +148,8 @@ function StepIdentificacao({ buo, onChange }: { buo: BUO; onChange: (b: Partial<
         </Select>
         <Input
           label="Código da ocorrência"
-          value={buo.codigoOcorrencia || buo.codigosOcorrencia.join(', ')}
-          onChange={e => onChange({ codigoOcorrencia: e.target.value })}
+          value={buo.codigoOcorrencia || formatCodigosNumeros(buo)}
+          onChange={e => onChange(syncCodigosFromText(e.target.value))}
           placeholder="Selecione na etapa Códigos ou digite (ex.: 016)"
         />
       </div>
@@ -618,10 +623,7 @@ function StepCodigos({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
     const selected = buo.codigosOcorrencia.includes(codigo)
       ? buo.codigosOcorrencia.filter(c => c !== codigo)
       : [...buo.codigosOcorrencia, codigo];
-    onChange({
-      codigosOcorrencia: selected,
-      codigoOcorrencia: selected.join(", "),
-    });
+    onChange(syncCodigosFromSelection(selected));
   };
 
   return (
@@ -632,7 +634,7 @@ function StepCodigos({ buo, onChange }: { buo: BUO; onChange: (b: Partial<BUO>) 
         </p>
         {buo.codigosOcorrencia.length > 0 && (
           <button
-            onClick={() => onChange({ codigosOcorrencia: [], codigoOcorrencia: '' })}
+            onClick={() => onChange(syncCodigosFromSelection([]))}
             className="text-xs text-red-600 hover:text-red-700 font-display font-600"
           >
             Limpar seleção

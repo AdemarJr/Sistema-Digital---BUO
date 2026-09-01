@@ -1,6 +1,11 @@
 import { BUO, Objeto } from "../types/buo";
-import { CODIGOS_OCORRENCIA } from "../data/codes";
 import { splitDateParts, formatDateBR } from "../utils/date";
+import {
+  collectCodigosFromBuo,
+  formatCodigosDetalhe,
+  formatCodigosNumeros,
+  resolveCodigosCatalog,
+} from "../utils/codigosOcorrencia";
 
 interface Props {
   buo: BUO;
@@ -133,11 +138,10 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
       ? 0
       : Math.max(armasRaw.length, drogasRaw.length, veiculosRaw.length);
 
-  const selectedCodes = buo.codigosOcorrencia
-    .map((cod) => CODIGOS_OCORRENCIA.find((c) => c.codigo === cod))
-    .filter(Boolean);
-
-  const reciboNome = buo.recibo.nome || buo.policial.nome;
+  const codigosNumeros = collectCodigosFromBuo(buo);
+  const selectedCodes = resolveCodigosCatalog(codigosNumeros);
+  const codigoOcorrencia = formatCodigosNumeros(buo);
+  const codigoOcorrenciaDetalhe = formatCodigosDetalhe(buo);
   const reciboFuncao = buo.recibo.funcao || buo.policial.funcao;
   const reciboId = buo.recibo.identificacaoFuncional || buo.policial.identificacaoFuncional;
   const hasAssinatura =
@@ -154,21 +158,8 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
     buo.outros && "OUTROS",
   ].filter(Boolean) as string[];
 
-  const codigoOcorrencia =
-    buo.codigoOcorrencia?.trim() ||
-    selectedCodes
-      .map((c) => (c ? `${c.codigo}` : ""))
-      .filter(Boolean)
-      .join(", ") ||
-    buo.codigosOcorrencia.join(", ");
-
-  const codigoOcorrenciaDetalhe =
-    selectedCodes.length > 0
-      ? selectedCodes
-          .map((c) => (c ? `${c.codigo} — ${c.descricao}` : ""))
-          .filter(Boolean)
-          .join(" · ")
-      : codigoOcorrencia;
+  const reciboNome = buo.recibo.nome || buo.policial.nome;
+  const reciboObs = buo.recibo.observacao || buo.observacoes || buo.policial.observacoes;
 
   return (
     <div className="buo-pdf" id={`buo-pdf-${buo.id}`}>
@@ -402,19 +393,22 @@ export default function BUOPDFTemplate({ buo, logos }: Props) {
           </section>
         )}
 
-        {selectedCodes.length > 0 && (
+        {codigosNumeros.length > 0 && (
           <section className="buo-box">
             <div className="buo-box__title">CÓDIGOS DAS OCORRÊNCIAS</div>
             <div className="buo-box__body">
               <div className="buo-codigos-selecionados">
-                {selectedCodes.map(
-                  (c) =>
-                    c && (
-                      <div key={c.codigo} className="buo-codigo-chip">
-                        <strong>{c.codigo}</strong>
-                        <span>{c.descricao}</span>
-                      </div>
-                    ),
+                {selectedCodes.length > 0 ? (
+                  selectedCodes.map((c) => (
+                    <div key={c.codigo} className="buo-codigo-chip">
+                      <strong>{c.codigo}</strong>
+                      <span>{c.descricao}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="buo-codigo-chip">
+                    <strong>{codigosNumeros.join(", ")}</strong>
+                  </div>
                 )}
               </div>
             </div>
